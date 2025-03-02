@@ -6,10 +6,8 @@ use crate::core::error::{EventError, EventResult};
 use crate::core::event::Event;
 
 enum HandlerEntry {
-    /// Standard immutable handler function
     Immutable(Box<dyn Fn(&dyn Any) + Send + Sync>),
-    /// Handler that can mutate its captured component
-    Mutable(Box<dyn FnMut(&dyn Any) + Send + Sync>),
+    Mutable(Box<dyn FnMut(&dyn Any) + Send>),
 }
 
 /// Type alias for unique handler identification.
@@ -32,7 +30,7 @@ pub struct HandlerId(pub usize);
 /// This implementation is designed to be wrapped in thread-safe containers
 /// like Arc<Mutex<>> when used across multiple threads.
 pub struct EventBus {
-    handlers: HashMap<TypeId, Vec<(HandlerId, Box<dyn Fn(&dyn Any) + Send + Sync>)>>,
+    handlers: HashMap<TypeId, Vec<(HandlerId, HandlerEntry)>>,
     next_handler_id: AtomicUsize,
 }
 
@@ -71,36 +69,14 @@ impl EventBus {
         }
     }
 
-    /// Subscribe to a specific event type with a handler function.
-    /// 
-    /// This method registers a handler function to be called whenever an event
-    /// of type `E` is published. It returns a unique handler ID that can be used
-    /// to unsubscribe the handler later.
-    /// 
-    /// # Type Parameters
-    /// 
-    /// * `E` - The event type to subscribe to
-    /// * `F` - The handler function type
-    /// 
-    /// # Arguments
-    /// 
-    /// * `handler` - A function that will be called when events of type `E` are published
-    /// 
-    /// # Returns
-    /// 
-    /// A unique `HandlerId` that can be used to unsubscribe this handle
-    /// 
-    /// # Thread Safety
-    /// This method uses atomic operations to ensure handler IDs are unique
-    /// across threads when used with `SharedEventBus`.
-    /// ```
+    // Replace the existing typed subscribe method with this version:
     pub fn subscribe<E: Event + 'static, F>(&mut self, handler: F) -> HandlerId
     where
         F: Fn(&E) + Send + Sync + 'static,
     {
         let handler_id = HandlerId(self.next_handler_id.fetch_add(1, Ordering::SeqCst));
         let type_id = TypeId::of::<E>();
-        
+
         let boxed_handler = Box::new(move |event: &dyn Any| {
             if let Some(typed_event) = event.downcast_ref::<E>() {
                 handler(typed_event);
@@ -109,52 +85,29 @@ impl EventBus {
         
         self.handlers.entry(type_id)
             .or_default()
-            .push((handler_id, boxed_handler));
+            .push((handler_id, HandlerEntry::Immutable(boxed_handler)));
         
         handler_id
     }
 
-    /// Subscribe to any event of a specific type with a raw handler function
-    /// 
-    /// This is primarily used by the attribute macro system and should rarely be called directly.
-    /// 
-    /// # Arguments
-    /// 
-    /// * `type_id` - TypeId of the event to subscribe to
-    /// * `handler` - Function to call when events of this type are published
-    /// 
-    /// # Returns
-    /// 
-    /// A unique handler ID that can be used to unsubscribe later
-    /// 
-    /// # Thread Safety
-    /// This method uses atomic operations to ensure handler IDs are unique
-    /// across threads when used with `SharedEventBus`.
-    pub fn subscribe_any(
-        &mut self,
-        type_id: TypeId,
-        handler: Box<dyn Fn(&dyn Any) + Send + Sync>,
-    ) -> HandlerId {
+    // New method for mutable subscriptions:
+    pub fn subscribe_mut<E: Event + 'static, F>(&mut self, mut handler: F) -> HandlerId
+    where
+        F: FnMut(&E) + Send + 'static,
+    {
         let handler_id = HandlerId(self.next_handler_id.fetch_add(1, Ordering::SeqCst));
-        
-        self.handlers.entry(type_id)
-            .or_default()
-            .push((handler_id, HandlerEntry::Immutable(handler)));
-        
-        handler_id
-    }
+        let type_id = TypeId::of::<E>();
 
-    /// Subscribe with a handler that can mutate its environment
-    pub fn subscribe_any_mut(
-        &mut self,
-        type_id: TypeId,
-        mut handler: Box<dyn FnMut(&dyn Any) + Send + Sync>,
-    ) -> HandlerId {
-        let handler_id = HandlerId(self.next_handler_id.fetch_add(1, Ordering::SeqCst));
+        // We need to box a closure that calls the mutable handler.
+        let boxed_handler = Box::new(move |event: &dyn Any| {
+            if let Some(typed_event) = event.downcast_ref::<E>() {
+                handler(typed_event);
+            }
+        });
         
         self.handlers.entry(type_id)
             .or_default()
-            .push((handler_id, HandlerEntry::Mutable(handler)));
+            .push((handler_id, HandlerEntry::Mutable(boxed_handler)));
         
         handler_id
     }

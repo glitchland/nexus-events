@@ -98,29 +98,12 @@ pub mod macros;
 ///
 /// Add this attribute to methods in `EventSubscriber` implementations to handle specific event types.
 ///
-/// # Example
-///
-/// ```
-/// #[event_handler(PlayerMoved)]
-/// fn on_player_moved(&mut self, event: &PlayerMoved) {
-///     // Handle the player moved event
-/// }
-/// ```
 pub use nexus_events_macros::event_handler;
 
 /// Attribute for marking methods as event senders.
 ///
 /// Add this attribute to methods in types implementing `EventEmitter` to send events.
 ///
-/// # Example
-///
-/// ```
-/// #[event_sender(PlayerMoved)]
-/// fn move_player(&self, player_id: String, x: f32, y: f32) {
-///     // Any preprocessing logic here
-///     // Event is automatically sent with the provided parameters
-/// }
-/// ```
 pub use nexus_events_macros::event_sender;
 
 /// Derive macro for implementing the `EventSubscriber` trait.
@@ -192,6 +175,4 @@ pub mod prelude {
 pub use subscriber::subscription::SubscriptionSet as EventSubscriptionSet;
 
 #[doc(hidden)]
-pub mod _internal {
-    pub use crate::subscriber::invoke_registration_methods;
-}
+pub use crate::subscriber::invoke_registration_methods;

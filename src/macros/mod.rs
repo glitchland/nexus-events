@@ -6,4 +6,4 @@
 //!
 //! The main macro provided is `define_event!`, which makes event definition more concise.
 
-pub(crate) mod define_event;
+pub mod define_event;

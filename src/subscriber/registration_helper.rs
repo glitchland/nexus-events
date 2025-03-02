@@ -20,19 +20,13 @@ pub trait EventHandlerRegistration {
 ///
 /// This function is called by the EventSubscriber implementation to register
 /// all methods annotated with #[event_handler] and return their subscriptions.
-pub fn register_component_handlers<T: Any>(
-    component: &mut T,
-    event_bus: &SharedEventBus,
-    subscriptions: &mut SubscriptionSet
-) {
-    // Try to cast the component to our registration trait
-    if let Some(registrable) = (component as &mut dyn Any).downcast_mut::<dyn EventHandlerRegistration>() {
-        // Get all handler subscriptions
-        let new_subs = registrable.register_handlers(event_bus);
-        
-        // Add them to the component's subscription set
-        for sub in new_subs {
-            subscriptions.add(sub);
-        }
+pub fn register_component_handlers<T>(component: &mut T, event_bus: &SharedEventBus, subscriptions: &mut SubscriptionSet)
+where
+    T: Any + EventHandlerRegistration,
+{
+    let new_subs = component.register_handlers(event_bus);
+    
+    for sub in new_subs {
+        subscriptions.add(sub);
     }
 }

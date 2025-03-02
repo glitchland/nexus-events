@@ -37,7 +37,7 @@ pub fn event_handler(attr: TokenStream, item: TokenStream) -> TokenStream {
         }
     };
     
-    item
+    output.into()
 }
 
 #[proc_macro_attribute]
@@ -136,7 +136,7 @@ pub fn event_sender(attr: TokenStream, item: TokenStream) -> TokenStream {
         }
     };
     
-    item
+    output.into()
 }
 
 // Helper function to check if parameter is &self or &mut self

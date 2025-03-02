@@ -5,7 +5,7 @@
 //! It uses an Arc<Mutex<>> pattern to provide safe concurrent access.
 
 use std::sync::{Arc, Mutex};
-use std::any::{Any, TypeId};
+use std::any::TypeId;
 use crate::core::bus::EventBus;
 use crate::core::event::Event;
 use crate::core::error::{EventError, EventResult};
@@ -35,23 +35,34 @@ impl SharedEventBus {
         Self(Arc::new(Mutex::new(EventBus::new())))
     }
     
-    /// Subscribes to events with a handler function.
+    /// Subscribes to events of type `E` with an immutable handler.
     ///
-    /// This is the core subscription method used by both direct code and the attribute system.
-    /// It registers a handler function that will be called whenever an event with the given
-    /// type ID is published.
-    ///
-    pub fn subscribe(
-        &self,
-        type_id: TypeId,
-        handler: Box<dyn Fn(&dyn Any) + Send + Sync>,
-    ) -> Subscription {
+    /// The handler is a function that receives a reference to the event.
+    pub fn subscribe<E: Event + 'static, F>(&self, handler: F) -> Subscription
+    where
+        F: Fn(&E) + Send + Sync + 'static,
+    {
         let handler_id = match self.0.lock() {
-            Ok(mut bus) => bus.subscribe_any(type_id, handler),
+            Ok(mut bus) => bus.subscribe::<E, F>(handler),
             Err(_) => panic!("EventBus lock poisoned"),
         };
-        
-        Subscription::new(type_id, handler_id)
+
+        Subscription::new(TypeId::of::<E>(), handler_id)
+    }
+
+    /// Subscribes to events of type `E` with a mutable handler.
+    ///
+    /// The handler is a function that can mutate its captured variables.
+    pub fn subscribe_mut<E: Event + 'static, F>(&self, handler: F) -> Subscription
+    where
+        F: FnMut(&E) + Send + 'static,
+    {
+        let handler_id = match self.0.lock() {
+            Ok(mut bus) => bus.subscribe_mut::<E, F>(handler),
+            Err(_) => panic!("EventBus lock poisoned"),
+        };
+
+        Subscription::new(TypeId::of::<E>(), handler_id)
     }
 
     /// Publishes an event to all subscribers.
