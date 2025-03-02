@@ -1,0 +1,50 @@
+# Binaries and build artifacts
+target/
+debug/
+release/
+build/
+
+# Rust package manager lock file (ignore if it's a library)
+Cargo.lock
+
+# Rust-specific files
+*.rs.bk
+*.rmeta
+
+# IDEs and editors
+.idea/
+.vscode/
+*.iml
+
+# Logs and temporary files
+*.log
+*.tmp
+
+# Rust test output
+test-*
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+
+# Compilation artifacts
+*.rlib
+*.d
+*.so
+*.dylib
+*.dll
+*.a
+*.lib
+
+# Coverage and debugging
+*.profdata
+*.profraw
+*.gcda
+*.gcno
+
+# cbindgen-generated files
+bindings.h
+
+# Rust Analyzer (optional, if you want to ignore it)
+rust-analyzer.json
+
