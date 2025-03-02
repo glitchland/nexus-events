@@ -35,3 +35,7 @@ impl Player {
     }
 }
 ```
+
+# Testing
+
+cargo test nexus_events::test_basic_subscribe_publish -- --exact

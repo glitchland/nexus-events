@@ -26,7 +26,7 @@ pub fn event_handler(attr: TokenStream, item: TokenStream) -> TokenStream {
             use ::std::any::TypeId;
             
             // Use FnMut instead of Fn for the handler
-            event_bus.subscribe_any_mut(
+            event_bus.subscribe_mut(
                 TypeId::of::<#event_type>(),
                 Box::new(move |event, this: &mut Self| {
                     if let Some(typed_event) = event.downcast_ref::<#event_type>() {
