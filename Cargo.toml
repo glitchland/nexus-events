@@ -1,9 +1,0 @@
-[workspace]
-resolver = "2"
-members = [
-    "nexus-events",
-    "nexus-events-macros",
-]
-exclude = [
-    "demo-app"
-]
