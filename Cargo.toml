@@ -1,17 +1,9 @@
-[package]
-name = "nexus-events"
-version = "0.1.0"
-edition = "2021"
-description = "Cute Little event system for Turbo engine game development"
-authors = ["Beatrice Roe <beatrice@glitch.land>"]
-license = "MIT OR Apache-2.0"
-
 [workspace]
+resolver = "2"
 members = [
-    "macros"
+    "nexus-events",
+    "nexus-events-macros",
 ]
-
-[dependencies]
-lazy_static = "1.4"
-once_cell = "1.17"
-nexus-events-macros = { path = "./macros", version = "0.1.0" }
+exclude = [
+    "demo-app"
+]

@@ -1,0 +1,17 @@
+[package]
+name = "nexus-events"
+version = "0.1.0"
+edition = "2021"
+authors = ["Beatrice Roe <beatrice@glitch.land>"]
+description = "A thread-safe, annotations-only, simple broadcast based event system."
+license = "MIT"
+repository = "https://github.com/glitchland/nexus-events"
+
+[lib]
+name = "nexus_events"
+path = "src/lib.rs"
+
+[dependencies]
+nexus-events-macros = { path = "../nexus-events-macros" } 
+once_cell = "1.18.0"
+thiserror = "1.0.47"

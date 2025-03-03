@@ -1,0 +1,12 @@
+[package]
+name = "nexus-events-demo-app"
+version = "0.1.0"
+edition = "2021"
+authors = ["Beatrice Roe <beatrice@glitch.land>"]
+description = "Simple demo as a tutorial for nexus-events integration"
+
+[dependencies]
+nexus-events = { path = "../nexus-events" }
+tui = "0.19"
+crossterm = "0.26"
+rand = "0.8"
